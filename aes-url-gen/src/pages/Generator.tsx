@@ -11,10 +11,10 @@ export default function Generator() {
     const [serial, setSerial] = useState(""); // 단건 생성용
     const [url, setUrl] = useState("");
 
-    // 대량 생성 옵션
-    const [start, setStart] = useState(1);
-    const [end, setEnd] = useState(9999);
-    const [concurrency, setConcurrency] = useState(50);
+    // 대량 생성 옵션 (✅ 4자리 문자열로 관리)
+    const [start, setStart] = useState<string>("0001");
+    const [end, setEnd] = useState<string>("9999");
+    const [concurrency, setConcurrency] = useState<number>(50);
 
     const [progress, setProgress] = useState(0);
     const [generating, setGenerating] = useState(false);
@@ -33,7 +33,7 @@ export default function Generator() {
     // === 단건 생성 ===
     async function handleMakeOne() {
         const serial4 = toSerial4(serial.trim());
-        if (!serial4 || serial4.length !== 4) {
+        if (!serial4 || serial4.length !== 4 || Number(serial4) < 1) {
             alert("serial은 숫자 4자리여야 합니다. (예: 0001)");
             return;
         }
@@ -70,7 +70,7 @@ export default function Generator() {
         const href = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = href;
-        a.download = `koas_urls_${product}_${start}-${end}.csv`;
+        a.download = `koas_urls_${product}_${start}-${end}.csv`; // ✅ 4자리 표기 유지
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -84,12 +84,22 @@ export default function Generator() {
     }
 
     async function generateBulk() {
-        const s = Number(start);
-        const e = Number(end);
-        if (!Number.isFinite(s) || !Number.isFinite(e) || s < 1 || e < s || e > 9999) {
-            alert("범위를 올바르게 입력하세요. 예) 1 ~ 9999");
+        const start4 = toSerial4(start);
+        const end4 = toSerial4(end);
+
+        if (!start4 || !end4 || start4.length !== 4 || end4.length !== 4) {
+            alert("시작/끝 번호는 숫자 4자리여야 합니다. (예: 0001 ~ 9999)");
             return;
         }
+
+        const s = Number(start4);
+        const e = Number(end4);
+
+        if (!Number.isFinite(s) || !Number.isFinite(e) || s < 1 || e < s || e > 9999) {
+            alert("범위를 올바르게 입력하세요. 예) 0001 ~ 9999, 그리고 시작 ≤ 끝 이어야 합니다.");
+            return;
+        }
+
         const total = e - s + 1;
 
         setGenerating(true);
@@ -111,7 +121,7 @@ export default function Generator() {
                 if (idx >= total) return;
 
                 const n = nums[idx];
-                const serial4 = String(n).padStart(4, "0"); // 4자리 고정
+                const serial4 = String(n).padStart(4, "0"); // ✅ 4자리 고정
                 try {
                     const token = await makeTokenAuto(serial4);
                     const url = buildPathStyleUrl(base, product.trim(), serial4, token);
@@ -151,7 +161,6 @@ export default function Generator() {
     return (
         <div className="gen-root">
             <div className="gen-root">
-
                 <div className="gen-shell">
                     <header className="gen-header">
                         <h1 className="gen-title">QR URL 생성기</h1>
@@ -222,29 +231,33 @@ export default function Generator() {
 
                         {/* 대량 카드 */}
                         <section className="card">
-                            <h3>대량 생성 (예: 1 ~ 9999)</h3>
+                            <h3>대량 생성 (예: 0001 ~ 9999)</h3>
 
                             <div className="row-grid">
                                 <div className="field">
                                     <label>시작번호</label>
                                     <input
                                         className="input"
-                                        type="number"
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="\d*"
+                                        maxLength={4}
                                         value={start}
-                                        min={1}
-                                        max={9999}
-                                        onChange={(e) => setStart(Number(e.target.value))}
+                                        onChange={(e) => setStart(toSerial4(e.target.value))}
+                                        placeholder="0001"
                                     />
                                 </div>
                                 <div className="field">
                                     <label>끝번호</label>
                                     <input
                                         className="input"
-                                        type="number"
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="\d*"
+                                        maxLength={4}
                                         value={end}
-                                        min={start}
-                                        max={9999}
-                                        onChange={(e) => setEnd(Number(e.target.value))}
+                                        onChange={(e) => setEnd(toSerial4(e.target.value))}
+                                        placeholder="9999"
                                     />
                                 </div>
                             </div>
