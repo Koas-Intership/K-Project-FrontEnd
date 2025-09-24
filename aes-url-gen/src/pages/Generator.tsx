@@ -70,7 +70,7 @@ export default function Generator() {
         const href = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = href;
-        a.download = `qr_urls_${product}_${start}-${end}.csv`;
+        a.download = `koas_urls_${product}_${start}-${end}.csv`;
         document.body.appendChild(a);
         a.click();
         a.remove();
