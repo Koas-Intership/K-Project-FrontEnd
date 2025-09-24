@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import { makeTokenAuto } from "../utils/crypto";
 import { buildPathStyleUrl } from "../utils/url";
-import "./generator.css";
+import "./Generator.css";
 
 type Row = { product: string; serial: string; token: string; url: string };
 
