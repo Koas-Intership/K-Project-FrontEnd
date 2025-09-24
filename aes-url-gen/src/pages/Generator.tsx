@@ -1,6 +1,6 @@
 // src/pages/Generator.tsx
 import { useRef, useState } from "react";
-import { makeTokenAuto } from "../utils/crypto";
+import { makeTokenUrlSafe } from "../utils/crypto"; // ✅ 변경
 import { buildPathStyleUrl } from "../utils/url";
 import "./Generator.css";
 
@@ -31,14 +31,14 @@ export default function Generator() {
     };
 
     // === 단건 생성 ===
-    async function handleMakeOne() {
+    function handleMakeOne() { // ✅ async 제거 (대기 불필요)
         const serial4 = toSerial4(serial.trim());
         if (!serial4 || serial4.length !== 4 || Number(serial4) < 1) {
             alert("serial은 숫자 4자리여야 합니다. (예: 0001)");
             return;
         }
         try {
-            const token = await makeTokenAuto(serial4);
+            const token = makeTokenUrlSafe(serial4); // ✅ await 제거
             setUrl(buildPathStyleUrl(base, product.trim(), serial4, token));
         } catch (e: any) {
             alert(e?.message || "토큰 생성 실패");
@@ -123,7 +123,7 @@ export default function Generator() {
                 const n = nums[idx];
                 const serial4 = String(n).padStart(4, "0"); // ✅ 4자리 고정
                 try {
-                    const token = await makeTokenAuto(serial4);
+                    const token = makeTokenUrlSafe(serial4); // ✅ await 제거
                     const url = buildPathStyleUrl(base, product.trim(), serial4, token);
                     results[idx] = { product: product.trim(), serial: serial4, token, url };
                 } catch (err: any) {
